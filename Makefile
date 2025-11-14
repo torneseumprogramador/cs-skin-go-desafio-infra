@@ -38,8 +38,8 @@ check-deps: ## Verifica se todas as dependências estão instaladas
 	@command -v ansible >/dev/null 2>&1 || { echo "$(RED)✗ Ansible não encontrado. Instale: brew install ansible$(NC)"; exit 1; }
 	@echo "$(GREEN)✓ Ansible encontrado$(NC)"
 	@command -v aws >/dev/null 2>&1 || echo "$(YELLOW)⚠ AWS CLI não encontrado (opcional). Instale: brew install awscli$(NC)"
-	@test -f ~/.ssh/id_rsa || { echo "$(RED)✗ Chave SSH não encontrada. Crie com: ssh-keygen -t rsa -b 4096$(NC)"; exit 1; }
-	@echo "$(GREEN)✓ Chave SSH encontrada$(NC)"
+	@test -f .ssh/id_rsa || { echo "$(YELLOW)⚠ Chaves SSH locais não encontradas em .ssh/$(NC)"; echo "$(YELLOW)Gerando chaves SSH locais...$(NC)"; mkdir -p .ssh; ssh-keygen -t rsa -b 4096 -f .ssh/id_rsa -N "" -C "cs-skin-go-deploy"; chmod 600 .ssh/id_rsa; chmod 644 .ssh/id_rsa.pub; }
+	@echo "$(GREEN)✓ Chaves SSH encontradas (projeto local)$(NC)"
 	@echo "$(GREEN)✓ Todas as dependências OK!$(NC)"
 
 setup: check-deps ## Configuração inicial (primeira vez)
