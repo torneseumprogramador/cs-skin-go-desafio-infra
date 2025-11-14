@@ -1,15 +1,19 @@
 ---
 - name: Check if using Git or local files
   set_fact:
-    use_git: "{{ backend_repo != '' and frontend_repo != '' }}"
+    use_git: "{{ (backend_repo is defined and backend_repo != '') and (frontend_repo is defined and frontend_repo != '') }}"
+
+- name: Debug use_git value
+  debug:
+    msg: "use_git={{ use_git }}, backend_repo={{ backend_repo | default('NOT DEFINED') }}, frontend_repo={{ frontend_repo | default('NOT DEFINED') }}"
 
 - name: Deploy from Git repositories
   include_tasks: deploy_from_git.yml
-  when: use_git
+  when: use_git | bool
 
 - name: Deploy from local files
   include_tasks: deploy_from_local.yml
-  when: not use_git
+  when: not (use_git | bool)
 
 - name: Create backend environment file
   template:
