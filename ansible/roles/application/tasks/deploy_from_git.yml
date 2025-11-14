@@ -31,12 +31,83 @@
     update: yes
   become_user: "{{ app_user }}"
 
+- name: Check if frontend Dockerfile exists
+  stat:
+    path: "{{ app_dir }}/frontend/Dockerfile"
+  register: frontend_dockerfile
+
+- name: Create frontend Dockerfile if it doesn't exist
+  copy:
+    dest: "{{ app_dir }}/frontend/Dockerfile"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0644'
+    content: |
+      # Estágio de dependências
+      FROM node:18-alpine AS deps
+      RUN apk add --no-cache libc6-compat
+      WORKDIR /app
+
+      # Copiar package files
+      COPY package*.json ./
+      COPY pnpm-lock.yaml* ./
+
+      # Instalar pnpm e dependências
+      RUN npm install -g pnpm
+      RUN pnpm install --no-frozen-lockfile || npm install
+
+      # Estágio de build
+      FROM node:18-alpine AS builder
+      WORKDIR /app
+
+      # Copiar dependências
+      COPY --from=deps /app/node_modules ./node_modules
+      COPY . .
+
+      # Build da aplicação
+      ENV NEXT_TELEMETRY_DISABLED=1
+      RUN npm install -g pnpm
+      RUN pnpm build || npm run build
+
+      # Estágio de produção
+      FROM node:18-alpine AS runner
+      WORKDIR /app
+
+      ENV NODE_ENV=production
+      ENV NEXT_TELEMETRY_DISABLED=1
+
+      RUN addgroup --system --gid 1001 nodejs
+      RUN adduser --system --uid 1001 nextjs
+
+      # Copiar arquivos necessários
+      COPY --from=builder /app/public ./public
+      COPY --from=builder /app/package.json ./package.json
+
+      # Copiar build
+      COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+      COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+      USER nextjs
+
+      EXPOSE 3000
+
+      ENV PORT=3000
+      ENV HOSTNAME="0.0.0.0"
+
+      # Health check
+      HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
+        CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
+
+      CMD ["node", "server.js"]
+  when: not frontend_dockerfile.stat.exists
+
 - name: Fix frontend Dockerfile - Remove frozen-lockfile
   replace:
     path: "{{ app_dir }}/frontend/Dockerfile"
     regexp: '--frozen-lockfile'
     replace: '--no-frozen-lockfile'
   ignore_errors: yes
+  when: frontend_dockerfile.stat.exists
 
 - name: Set correct ownership for cloned repositories
   file:
