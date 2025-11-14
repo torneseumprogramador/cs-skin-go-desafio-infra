@@ -10,8 +10,9 @@ brew install terraform ansible awscli
 aws configure
 # Insira: Access Key ID, Secret Access Key, Region (us-east-1)
 
-# 3. Gerar chave SSH (se não tiver)
-ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa
+# 3. Chaves SSH já incluídas!
+# As chaves SSH estão em .ssh/ e são usadas automaticamente
+# Não precisa configurar nada adicional
 ```
 
 ## Deploy Completo com Makefile 🎯

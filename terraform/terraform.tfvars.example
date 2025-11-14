@@ -8,9 +8,9 @@ environment = "production"
 instance_type     = "t2.micro" # ~$8.50/mês (FREE no primeiro ano)
 root_volume_size  = 20         # GB
 
-# SSH Configuration
-ssh_public_key_path  = "~/.ssh/id_rsa.pub"
-ssh_private_key_path = "~/.ssh/id_rsa"
+# SSH Configuration (usa chaves locais do projeto)
+ssh_public_key_path  = "../.ssh/id_rsa.pub"
+ssh_private_key_path = "../.ssh/id_rsa"
 ssh_user             = "ubuntu"
 
 # Security - IMPORTANTE: Mude para seu IP!

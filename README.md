@@ -127,7 +127,7 @@ Isso verificará se você tem instalado:
 - Terraform
 - Ansible
 - AWS CLI (opcional)
-- Chave SSH
+- Chave SSH (✅ já incluída em `.ssh/`)
 
 ### 3. Setup Inicial
 

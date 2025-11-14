@@ -31,13 +31,13 @@ variable "root_volume_size" {
 variable "ssh_public_key_path" {
   description = "Caminho para a chave pública SSH"
   type        = string
-  default     = "~/.ssh/id_rsa.pub"
+  default     = "../.ssh/id_rsa.pub"
 }
 
 variable "ssh_private_key_path" {
   description = "Caminho para a chave privada SSH"
   type        = string
-  default     = "~/.ssh/id_rsa"
+  default     = "../.ssh/id_rsa"
 }
 
 variable "ssh_user" {
