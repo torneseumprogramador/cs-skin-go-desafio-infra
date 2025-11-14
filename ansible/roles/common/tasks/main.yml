@@ -28,6 +28,11 @@
     state: present
     executable: pip3
 
+- name: Create application group
+  group:
+    name: "{{ app_group }}"
+    state: present
+
 - name: Create application user
   user:
     name: "{{ app_user }}"
