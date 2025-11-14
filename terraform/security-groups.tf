@@ -10,18 +10,18 @@ resource "aws_security_group" "app_sg" {
 
 # Regras de ingress (entrada)
 
-# SSH (porta 22)
-resource "aws_vpc_security_group_ingress_rule" "ssh" {
+# SSH (porta 22) - IPv4
+resource "aws_vpc_security_group_ingress_rule" "ssh_ipv4" {
   security_group_id = aws_security_group.app_sg.id
-  description       = "SSH access"
+  description       = "SSH access IPv4"
   
   from_port   = 22
   to_port     = 22
   ip_protocol = "tcp"
-  cidr_ipv4   = var.allowed_ssh_cidr[0]
+  cidr_ipv4   = "0.0.0.0/0"  # Permitir de qualquer lugar por enquanto
 
   tags = {
-    Name = "ssh-access"
+    Name = "ssh-access-ipv4"
   }
 }
 
