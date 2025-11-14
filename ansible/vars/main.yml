@@ -33,10 +33,11 @@ cors_origin: "http://{{ ansible_host }}"
 rate_limit_ttl: 60
 rate_limit_max: 100
 
-# Git (opcional)
-backend_repo: "{{ lookup('env', 'TF_VAR_backend_repo') | default('', true) }}"
-frontend_repo: "{{ lookup('env', 'TF_VAR_frontend_repo') | default('', true) }}"
-git_branch: "{{ lookup('env', 'TF_VAR_git_branch') | default('main', true) }}"
+# Git (opcional - valores vêm do inventory.ini gerado pelo Terraform)
+# Se não definido no inventory, defaults para vazio
+backend_repo: "{{ backend_repo | default('', true) }}"
+frontend_repo: "{{ frontend_repo | default('', true) }}"
+git_branch: "{{ git_branch | default('main', true) }}"
 
 # Paths locais (se não usar git)
 local_backend_path: "{{ playbook_dir }}/../../back-end-api"
