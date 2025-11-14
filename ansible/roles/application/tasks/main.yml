@@ -36,15 +36,15 @@
     mode: '0644'
 
 - name: Stop existing containers
-  community.docker.docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ app_dir }}"
     state: absent
   ignore_errors: yes
 
 - name: Build and start containers
-  community.docker.docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ app_dir }}"
-    build: yes
+    build: always
     state: present
   become_user: "{{ app_user }}"
 
