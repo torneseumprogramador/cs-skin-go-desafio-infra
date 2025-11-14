@@ -15,3 +15,20 @@
     force: yes
   become_user: "{{ app_user }}"
 
+- name: Fix frontend Dockerfile - Remove frozen-lockfile
+  replace:
+    path: "{{ app_dir }}/frontend/Dockerfile"
+    regexp: '--frozen-lockfile'
+    replace: '--no-frozen-lockfile'
+  ignore_errors: yes
+
+- name: Set correct ownership for cloned repositories
+  file:
+    path: "{{ item }}"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    recurse: yes
+  loop:
+    - "{{ app_dir }}/backend"
+    - "{{ app_dir }}/frontend"
+
