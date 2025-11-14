@@ -31,19 +31,19 @@ server {
     # Client body size
     client_max_body_size 10M;
     
-    # Proxy settings
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection 'upgrade';
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_cache_bypass $http_upgrade;
-    
     # Frontend - Next.js
     location / {
         limit_req zone=general_limit burst=100 nodelay;
+        
+        # Proxy settings
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
         
         proxy_pass http://frontend;
         proxy_read_timeout 60s;
@@ -91,30 +91,30 @@ server {
     # Client body size
     client_max_body_size 10M;
     
-    # Proxy settings
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection 'upgrade';
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_cache_bypass $http_upgrade;
-    
-    # Handle OPTIONS requests (CORS preflight)
-    if ($request_method = 'OPTIONS') {
-        add_header Access-Control-Allow-Origin "http://{{ frontend_domain }}" always;
-        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH" always;
-        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization" always;
-        add_header Access-Control-Allow-Credentials "true" always;
-        add_header Content-Length 0;
-        add_header Content-Type text/plain;
-        return 204;
-    }
-    
     # Backend API - todas as rotas vão para a API
     location / {
+        # Handle OPTIONS requests (CORS preflight)
+        if ($request_method = 'OPTIONS') {
+            add_header Access-Control-Allow-Origin "http://{{ frontend_domain }}" always;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH" always;
+            add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization" always;
+            add_header Access-Control-Allow-Credentials "true" always;
+            add_header Content-Length 0;
+            add_header Content-Type text/plain;
+            return 204;
+        }
+        
         limit_req zone=api_limit burst=20 nodelay;
+        
+        # Proxy settings
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
         
         proxy_pass http://backend/api;
         proxy_read_timeout 60s;
