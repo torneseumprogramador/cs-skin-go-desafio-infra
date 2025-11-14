@@ -15,13 +15,11 @@ ansible/.ansible/
 # Logs
 *.log
 
-# SSH Keys
+# SSH Keys (mas versiona README.md)
 *.pem
 *.key
-.ssh/
-.ssh/id_rsa
-.ssh/id_rsa.pub
-.ssh/known_hosts
+.ssh/*
+!.ssh/README.md
 
 # OS
 .DS_Store
