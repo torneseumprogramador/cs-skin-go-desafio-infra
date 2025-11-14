@@ -101,6 +101,9 @@ resource "local_file" "ansible_inventory" {
     app_server_ip = aws_eip.app_eip.public_ip
     ssh_user      = var.ssh_user
     ssh_key_path  = var.ssh_private_key_path
+    backend_repo  = var.backend_repo
+    frontend_repo = var.frontend_repo
+    git_branch    = var.git_branch
   })
   
   filename        = "${path.module}/../ansible/inventory.ini"
