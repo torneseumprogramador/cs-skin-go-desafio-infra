@@ -1,0 +1,17 @@
+---
+- name: Clone backend repository
+  git:
+    repo: "{{ backend_repo }}"
+    dest: "{{ app_dir }}/backend"
+    version: "{{ git_branch }}"
+    force: yes
+  become_user: "{{ app_user }}"
+
+- name: Clone frontend repository
+  git:
+    repo: "{{ frontend_repo }}"
+    dest: "{{ app_dir }}/frontend"
+    version: "{{ git_branch }}"
+    force: yes
+  become_user: "{{ app_user }}"
+

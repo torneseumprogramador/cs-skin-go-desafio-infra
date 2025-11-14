@@ -1,0 +1,47 @@
+---
+# Variáveis principais da aplicação
+app_name: cs-skin-go
+app_user: appuser
+app_group: appuser
+app_dir: /opt/{{ app_name }}
+
+# Portas
+backend_port: 3001
+frontend_port: 3000
+nginx_port: 80
+
+# Docker
+docker_compose_version: "2.23.0"
+
+# Node.js
+nodejs_version: "18"
+
+# MySQL
+mysql_root_password: "{{ lookup('env', 'TF_VAR_mysql_root_password') | default('change-me-strong-password-123', true) }}"
+mysql_database: "{{ lookup('env', 'TF_VAR_mysql_database') | default('cs_skin_go', true) }}"
+mysql_user: "{{ lookup('env', 'TF_VAR_mysql_user') | default('cs_user', true) }}"
+mysql_password: "{{ lookup('env', 'TF_VAR_mysql_password') | default('change-me-user-password-456', true) }}"
+
+# JWT
+jwt_secret: "{{ lookup('env', 'TF_VAR_jwt_secret') | default('change-me-in-production-use-env-var-32-chars-minimum', true) }}"
+jwt_expires_in: "7d"
+
+# CORS
+cors_origin: "http://{{ ansible_host }}"
+
+# Rate Limit
+rate_limit_ttl: 60
+rate_limit_max: 100
+
+# Git (opcional)
+backend_repo: "{{ lookup('env', 'TF_VAR_backend_repo') | default('', true) }}"
+frontend_repo: "{{ lookup('env', 'TF_VAR_frontend_repo') | default('', true) }}"
+git_branch: "{{ lookup('env', 'TF_VAR_git_branch') | default('main', true) }}"
+
+# Paths locais (se não usar git)
+local_backend_path: "{{ playbook_dir }}/../../back-end-api"
+local_frontend_path: "{{ playbook_dir }}/../../front-end"
+
+# Nginx
+nginx_server_name: "{{ lookup('env', 'TF_VAR_app_domain') | default(ansible_host, true) }}"
+

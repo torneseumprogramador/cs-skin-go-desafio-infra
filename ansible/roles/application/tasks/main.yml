@@ -1,0 +1,93 @@
+---
+- name: Check if using Git or local files
+  set_fact:
+    use_git: "{{ backend_repo != '' and frontend_repo != '' }}"
+
+- name: Deploy from Git repositories
+  include_tasks: deploy_from_git.yml
+  when: use_git
+
+- name: Deploy from local files
+  include_tasks: deploy_from_local.yml
+  when: not use_git
+
+- name: Create backend environment file
+  template:
+    src: backend.env.j2
+    dest: "{{ app_dir }}/backend/.env"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0600'
+
+- name: Create frontend environment file
+  template:
+    src: frontend.env.j2
+    dest: "{{ app_dir }}/frontend/.env.production"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0600'
+
+- name: Create docker-compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ app_dir }}/docker-compose.yml"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0644'
+
+- name: Stop existing containers
+  community.docker.docker_compose:
+    project_src: "{{ app_dir }}"
+    state: absent
+  ignore_errors: yes
+
+- name: Build and start containers
+  community.docker.docker_compose:
+    project_src: "{{ app_dir }}"
+    build: yes
+    state: present
+  become_user: "{{ app_user }}"
+
+- name: Wait for MySQL to be ready
+  wait_for:
+    host: localhost
+    port: 3306
+    delay: 10
+    timeout: 60
+
+- name: Wait for backend to be ready
+  wait_for:
+    host: localhost
+    port: "{{ backend_port }}"
+    delay: 5
+    timeout: 120
+
+- name: Run database migrations
+  community.docker.docker_container_exec:
+    container: "{{ app_name }}-backend"
+    command: npm run migration:run
+  ignore_errors: yes
+
+- name: Run database seeds
+  community.docker.docker_container_exec:
+    container: "{{ app_name }}-backend"
+    command: npm run seed
+  ignore_errors: yes
+
+- name: Wait for frontend to be ready
+  wait_for:
+    host: localhost
+    port: "{{ frontend_port }}"
+    delay: 5
+    timeout: 120
+
+- name: Verify all containers are running
+  community.docker.docker_container_info:
+    name: "{{ item }}"
+  register: container_info
+  failed_when: not container_info.container.State.Running
+  loop:
+    - "{{ app_name }}-mysql"
+    - "{{ app_name }}-backend"
+    - "{{ app_name }}-frontend"
+

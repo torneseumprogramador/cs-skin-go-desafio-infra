@@ -1,0 +1,45 @@
+---
+- name: Deploy CS Skin GO Application
+  hosts: app_servers
+  become: yes
+  gather_facts: yes
+  
+  vars_files:
+    - vars/main.yml
+  
+  pre_tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      
+    - name: Wait for system to be ready
+      wait_for_connection:
+        timeout: 300
+  
+  roles:
+    - role: common
+      tags: ['common', 'setup']
+    
+    - role: docker
+      tags: ['docker', 'setup']
+    
+    - role: nginx
+      tags: ['nginx', 'setup']
+    
+    - role: application
+      tags: ['application', 'deploy']
+  
+  post_tasks:
+    - name: Display deployment information
+      debug:
+        msg:
+          - "=========================================="
+          - "Deployment completed successfully!"
+          - "=========================================="
+          - "Frontend URL: http://{{ ansible_host }}"
+          - "Backend API: http://{{ ansible_host }}/api"
+          - "=========================================="
+          - "SSH Access: ssh {{ ansible_user }}@{{ ansible_host }}"
+          - "=========================================="
+

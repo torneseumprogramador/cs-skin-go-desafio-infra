@@ -1,0 +1,36 @@
+# Copie este arquivo para terraform.tfvars e ajuste os valores
+
+# AWS Configuration
+aws_region  = "us-east-1"
+environment = "production"
+
+# Instance Configuration
+instance_type     = "t2.micro" # ~$8.50/mês (FREE no primeiro ano)
+root_volume_size  = 20         # GB
+
+# SSH Configuration
+ssh_public_key_path  = "~/.ssh/id_rsa.pub"
+ssh_private_key_path = "~/.ssh/id_rsa"
+ssh_user             = "ubuntu"
+
+# Security - IMPORTANTE: Mude para seu IP!
+allowed_ssh_cidr  = ["0.0.0.0/0"] # Mude para ["SEU_IP/32"]
+allowed_http_cidr = ["0.0.0.0/0"]
+
+# Application Configuration
+app_domain     = "" # example.com (deixe vazio se não tiver domínio)
+backend_port   = 3001
+frontend_port  = 3000
+
+# Secrets - MUDE ESTES VALORES EM PRODUÇÃO!
+jwt_secret          = "your-super-secret-jwt-key-change-in-production-min-32-chars"
+mysql_root_password = "change-me-strong-root-password-123"
+mysql_database      = "cs_skin_go"
+mysql_user          = "cs_user"
+mysql_password      = "change-me-user-password-456"
+
+# Git Repositories (opcional - deixe vazio para usar cópia local)
+backend_repo  = ""
+frontend_repo = ""
+git_branch    = "main"
+

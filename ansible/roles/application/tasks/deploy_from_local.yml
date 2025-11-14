@@ -1,0 +1,37 @@
+---
+- name: Sync backend files to server
+  synchronize:
+    src: "{{ local_backend_path }}/"
+    dest: "{{ app_dir }}/backend/"
+    delete: yes
+    rsync_opts:
+      - "--exclude=node_modules"
+      - "--exclude=dist"
+      - "--exclude=.git"
+      - "--exclude=.env"
+
+- name: Sync frontend files to server
+  synchronize:
+    src: "{{ local_frontend_path }}/"
+    dest: "{{ app_dir }}/frontend/"
+    delete: yes
+    rsync_opts:
+      - "--exclude=node_modules"
+      - "--exclude=.next"
+      - "--exclude=.git"
+      - "--exclude=.env"
+
+- name: Set correct ownership for backend
+  file:
+    path: "{{ app_dir }}/backend"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    recurse: yes
+
+- name: Set correct ownership for frontend
+  file:
+    path: "{{ app_dir }}/frontend"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    recurse: yes
+
