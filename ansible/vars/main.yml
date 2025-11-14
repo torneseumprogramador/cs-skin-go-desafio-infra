@@ -34,10 +34,8 @@ rate_limit_ttl: 60
 rate_limit_max: 100
 
 # Git (opcional - valores vêm do inventory.ini gerado pelo Terraform)
-# Se não definido no inventory, defaults para vazio
-backend_repo: "{{ backend_repo | default('', true) }}"
-frontend_repo: "{{ frontend_repo | default('', true) }}"
-git_branch: "{{ git_branch | default('main', true) }}"
+# Não definimos aqui para permitir que as variáveis do inventory sejam usadas
+# backend_repo, frontend_repo e git_branch são definidos no inventory.ini
 
 # Paths locais (se não usar git)
 local_backend_path: "{{ playbook_dir }}/../../back-end-api"
