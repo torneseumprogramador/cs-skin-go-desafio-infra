@@ -1,10 +1,25 @@
 ---
+- name: Remove existing backend directory if not a git repo
+  file:
+    path: "{{ app_dir }}/backend"
+    state: absent
+  when: not (ansible_facts['stat'] is defined and ansible_facts['stat']['exists'])
+  ignore_errors: yes
+
+- name: Remove existing frontend directory if not a git repo
+  file:
+    path: "{{ app_dir }}/frontend"
+    state: absent
+  when: not (ansible_facts['stat'] is defined and ansible_facts['stat']['exists'])
+  ignore_errors: yes
+
 - name: Clone backend repository
   git:
     repo: "{{ backend_repo }}"
     dest: "{{ app_dir }}/backend"
     version: "{{ git_branch }}"
     force: yes
+    update: yes
   become_user: "{{ app_user }}"
 
 - name: Clone frontend repository
@@ -13,6 +28,7 @@
     dest: "{{ app_dir }}/frontend"
     version: "{{ git_branch }}"
     force: yes
+    update: yes
   become_user: "{{ app_user }}"
 
 - name: Fix frontend Dockerfile - Remove frozen-lockfile
