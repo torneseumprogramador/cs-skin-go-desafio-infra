@@ -30,8 +30,8 @@ mysql_database      = "cs_skin_go"
 mysql_user          = "cs_user"
 mysql_password      = "change-me-user-password-456"
 
-# Git Repositories (opcional - deixe vazio para usar cópia local)
-backend_repo  = ""
-frontend_repo = ""
+# Git Repositories (deploy via Git)
+backend_repo  = "https://github.com/torneseumprogramador/cs-skin-go-desafio-api.git"
+frontend_repo = "https://github.com/torneseumprogramador/cs-skin-go-desafio.git"
 git_branch    = "main"
 
