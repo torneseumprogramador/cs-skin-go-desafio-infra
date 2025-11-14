@@ -20,12 +20,41 @@ output "ssh_connection_string" {
 
 output "frontend_url" {
   description = "URL do frontend"
-  value       = "http://${aws_eip.app_eip.public_ip}"
+  value       = var.frontend_domain != "" ? "http://${var.frontend_domain}" : "http://${aws_eip.app_eip.public_ip}"
 }
 
 output "backend_url" {
   description = "URL do backend"
-  value       = "http://${aws_eip.app_eip.public_ip}/api"
+  value       = var.backend_domain != "" ? "http://${var.backend_domain}" : "http://${aws_eip.app_eip.public_ip}/api"
+}
+
+output "frontend_domain" {
+  description = "Domínio do frontend"
+  value       = var.frontend_domain
+}
+
+output "backend_domain" {
+  description = "Domínio da API"
+  value       = var.backend_domain
+}
+
+output "dns_configuration" {
+  description = "Configuração DNS necessária"
+  value = <<-EOT
+    Configure os seguintes registros DNS:
+    
+    Tipo A (Frontend):
+    Nome: ia.daniloaparecido.com.br
+    Valor: ${aws_eip.app_eip.public_ip}
+    TTL: 3600
+    
+    Tipo A (Backend):
+    Nome: api-ia.daniloaparecido.com.br
+    Valor: ${aws_eip.app_eip.public_ip}
+    TTL: 3600
+    
+    Após configurar o DNS, aguarde a propagação (pode levar até 48h).
+  EOT
 }
 
 output "security_group_id" {

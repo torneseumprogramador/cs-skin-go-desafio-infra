@@ -18,9 +18,10 @@ allowed_ssh_cidr  = ["0.0.0.0/0"] # Mude para ["SEU_IP/32"]
 allowed_http_cidr = ["0.0.0.0/0"]
 
 # Application Configuration
-app_domain     = "" # example.com (deixe vazio se não tiver domínio)
-backend_port   = 3001
-frontend_port  = 3000
+frontend_domain = "ia.daniloaparecido.com.br"
+backend_domain  = "api-ia.daniloaparecido.com.br"
+backend_port    = 3001
+frontend_port   = 3000
 
 # Secrets - MUDE ESTES VALORES EM PRODUÇÃO!
 jwt_secret          = "your-super-secret-jwt-key-change-in-production-min-32-chars"

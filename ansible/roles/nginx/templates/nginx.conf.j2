@@ -11,9 +11,12 @@ upstream frontend {
 limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
 limit_req_zone $binary_remote_addr zone=general_limit:10m rate=50r/s;
 
+# ========================================
+# Frontend Server - ia.daniloaparecido.com.br
+# ========================================
 server {
     listen 80;
-    server_name {{ nginx_server_name }};
+    server_name {{ frontend_domain }};
     
     # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -22,8 +25,8 @@ server {
     add_header Referrer-Policy "no-referrer-when-downgrade" always;
     
     # Logging
-    access_log /var/log/nginx/{{ app_name }}_access.log;
-    error_log /var/log/nginx/{{ app_name }}_error.log;
+    access_log /var/log/nginx/frontend_access.log;
+    error_log /var/log/nginx/frontend_error.log;
     
     # Client body size
     client_max_body_size 10M;
@@ -37,22 +40,6 @@ server {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_cache_bypass $http_upgrade;
-    
-    # Backend API
-    location /api {
-        limit_req zone=api_limit burst=20 nodelay;
-        
-        proxy_pass http://backend;
-        proxy_read_timeout 60s;
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-    }
-    
-    # Health check endpoint
-    location /api/health {
-        proxy_pass http://backend/api/health;
-        access_log off;
-    }
     
     # Frontend - Next.js
     location / {
@@ -80,12 +67,75 @@ server {
     }
 }
 
-# Redirect www to non-www (if domain is set)
-{% if nginx_server_name != ansible_host %}
+# ========================================
+# Backend/API Server - api-ia.daniloaparecido.com.br
+# ========================================
 server {
     listen 80;
-    server_name www.{{ nginx_server_name }};
-    return 301 http://{{ nginx_server_name }}$request_uri;
+    server_name {{ backend_domain }};
+    
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Access-Control-Allow-Origin "http://{{ frontend_domain }}" always;
+    add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH" always;
+    add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization" always;
+    add_header Access-Control-Allow-Credentials "true" always;
+    
+    # Logging
+    access_log /var/log/nginx/backend_access.log;
+    error_log /var/log/nginx/backend_error.log;
+    
+    # Client body size
+    client_max_body_size 10M;
+    
+    # Proxy settings
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_cache_bypass $http_upgrade;
+    
+    # Handle OPTIONS requests (CORS preflight)
+    if ($request_method = 'OPTIONS') {
+        add_header Access-Control-Allow-Origin "http://{{ frontend_domain }}" always;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH" always;
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization" always;
+        add_header Access-Control-Allow-Credentials "true" always;
+        add_header Content-Length 0;
+        add_header Content-Type text/plain;
+        return 204;
+    }
+    
+    # Backend API - todas as rotas vão para a API
+    location / {
+        limit_req zone=api_limit burst=20 nodelay;
+        
+        proxy_pass http://backend/api;
+        proxy_read_timeout 60s;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+    }
+    
+    # Health check endpoint
+    location /health {
+        proxy_pass http://backend/api/health;
+        access_log off;
+    }
 }
-{% endif %}
 
+# ========================================
+# Fallback Server - Access via IP
+# ========================================
+server {
+    listen 80 default_server;
+    server_name _;
+    
+    # Redirect to frontend domain
+    return 301 http://{{ frontend_domain }}$request_uri;
+}

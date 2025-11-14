@@ -59,10 +59,16 @@ variable "allowed_http_cidr" {
 }
 
 # Variáveis da aplicação
-variable "app_domain" {
-  description = "Domínio da aplicação (opcional)"
+variable "frontend_domain" {
+  description = "Domínio do frontend"
   type        = string
-  default     = ""
+  default     = "ia.daniloaparecido.com.br"
+}
+
+variable "backend_domain" {
+  description = "Domínio do backend/API"
+  type        = string
+  default     = "api-ia.daniloaparecido.com.br"
 }
 
 variable "backend_port" {

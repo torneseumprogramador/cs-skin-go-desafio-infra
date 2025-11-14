@@ -42,6 +42,7 @@ git_branch: "{{ lookup('env', 'TF_VAR_git_branch') | default('main', true) }}"
 local_backend_path: "{{ playbook_dir }}/../../back-end-api"
 local_frontend_path: "{{ playbook_dir }}/../../front-end"
 
-# Nginx
-nginx_server_name: "{{ lookup('env', 'TF_VAR_app_domain') | default(ansible_host, true) }}"
+# Nginx e Domínios
+frontend_domain: "{{ lookup('env', 'TF_VAR_frontend_domain') | default('ia.daniloaparecido.com.br', true) }}"
+backend_domain: "{{ lookup('env', 'TF_VAR_backend_domain') | default('api-ia.daniloaparecido.com.br', true) }}"
 
