@@ -69,6 +69,14 @@
   when: not use_docker_for_app | bool
 
 - name: Build frontend (Next.js)
+  # Garante que todas as dependências (incluindo dev, ex: @tailwindcss/postcss) estejam presentes
+  community.general.npm:
+    name: "@tailwindcss/postcss"
+    path: "{{ app_dir }}/frontend"
+    production: false
+  when: not use_docker_for_app | bool
+
+- name: Build frontend (Next.js)
   command: npm run build
   args:
     chdir: "{{ app_dir }}/frontend"
