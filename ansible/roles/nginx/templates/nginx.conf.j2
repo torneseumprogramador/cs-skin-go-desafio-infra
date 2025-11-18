@@ -91,7 +91,7 @@ server {
     # Client body size
     client_max_body_size 10M;
     
-    # Backend API - todas as rotas vão para a API
+    # Backend API - todas as rotas vão para a API (prefixo /api vem do próprio backend)
     location / {
         # Handle OPTIONS requests (CORS preflight)
         if ($request_method = 'OPTIONS') {
@@ -116,16 +116,11 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
         
-        proxy_pass http://backend/api;
+        # Apenas repassar a URL como está para o backend (que já possui prefixo /api)
+        proxy_pass http://backend;
         proxy_read_timeout 60s;
         proxy_connect_timeout 60s;
         proxy_send_timeout 60s;
-    }
-    
-    # Health check endpoint
-    location /health {
-        proxy_pass http://backend/api/health;
-        access_log off;
     }
 }
 
