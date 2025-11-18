@@ -14,7 +14,8 @@ nginx_port: 80
 docker_compose_version: "2.23.0"
 
 # Node.js
-nodejs_version: "18"
+# Para o frontend (Next.js) é necessário Node >= 20.9
+nodejs_version: "20"
 
 # Deploy mode
 # Se true, backend/frontend rodam em containers Docker.

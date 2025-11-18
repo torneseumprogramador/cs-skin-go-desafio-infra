@@ -10,6 +10,9 @@ Este diretório contém toda a configuração de infraestrutura como código (Ia
 - [Custos](#custos)
 - [Instalação](#instalação)
 - [Deploy](#deploy)
+- [Domínios e DNS](#domínios-e-dns)
+- [Chaves SSH do Projeto](#chaves-ssh-do-projeto)
+- [Workflow de Git da Infra](#workflow-de-git-da-infra)
 - [Gerenciamento](#gerenciamento)
 - [Troubleshooting](#troubleshooting)
 
@@ -232,6 +235,98 @@ Ou:
 ```bash
 cd infra/ansible
 ansible-playbook playbook.yml --tags application
+```
+
+## 🌐 Domínios e DNS
+
+Este projeto já está preparado para usar domínios customizados:
+
+- **Frontend**: `ia.daniloaparecido.com.br`
+- **Backend/API**: `api-ia.daniloaparecido.com.br`
+
+Depois do deploy (quando você já tiver o IP público da EC2), configure dois registros **A** no seu provedor de DNS (Registro.br, Cloudflare, etc):
+
+- `ia.daniloaparecido.com.br` → `<IP_PUBLICO_DA_EC2>`
+- `api-ia.daniloaparecido.com.br` → `<IP_PUBLICO_DA_EC2>`
+
+Você pode obter o IP público com:
+
+```bash
+cd infra/terraform
+terraform output instance_public_ip
+```
+
+Após a propagação DNS:
+
+- Frontend: `http://ia.daniloaparecido.com.br`
+- Backend (API): `http://api-ia.daniloaparecido.com.br/api`
+
+> Para HTTPS, use Certbot/Let's Encrypt diretamente no servidor (instalação padrão com `certbot --nginx`).
+
+## 🔐 Chaves SSH do Projeto
+
+O diretório `infra/.ssh/` contém um par de chaves **exclusivo deste projeto**:
+
+```text
+infra/
+  .ssh/
+    id_rsa      # chave privada (gitignored)
+    id_rsa.pub  # chave pública (gitignored)
+```
+
+- Essas chaves são usadas automaticamente pelo Terraform/Ansible.
+- Elas **não são** commitadas (estão protegidas pelo `.gitignore`).
+
+Se quiser usar suas chaves pessoais:
+
+1. Edite `terraform/terraform.tfvars`:
+
+```hcl
+ssh_public_key_path  = "~/.ssh/id_rsa.pub"
+ssh_private_key_path = "~/.ssh/id_rsa"
+```
+
+2. Ou exporte variáveis de ambiente `TF_VAR_ssh_public_key_path` e `TF_VAR_ssh_private_key_path`.
+
+Para regenerar as chaves do projeto:
+
+```bash
+cd infra/.ssh
+ssh-keygen -t rsa -b 4096 -f id_rsa -N "" -C "cs-skin-go-deploy"
+chmod 600 id_rsa
+chmod 644 id_rsa.pub
+```
+
+## 🌿 Workflow de Git da Infra
+
+A infra está em um repositório separado:
+
+```text
+https://github.com/torneseumprogramador/cs-skin-go-desafio-infra
+```
+
+Fluxo recomendado:
+
+```bash
+cd infra
+
+# Criar branch de feature
+git checkout -b feature/minha-mudanca
+
+# Fazer alterações (Terraform / Ansible)
+git add .
+git commit -m "feat: descrição da mudança"
+git push origin feature/minha-mudanca
+```
+
+Depois, abra um **Pull Request** nesse repositório, revise e faça merge em `main`.  
+Para atualizar o ambiente após o merge:
+
+```bash
+cd infra
+git checkout main
+git pull origin main
+make deploy      # ou make update, se for só aplicação
 ```
 
 ## 🔧 Gerenciamento
