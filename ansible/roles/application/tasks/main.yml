@@ -34,7 +34,8 @@
 - name: Install Node.js {{ nodejs_version }} (para rodar app fora do Docker)
   shell: |
     curl -fsSL https://deb.nodesource.com/setup_{{ nodejs_version }}.x | bash - && \
-    apt-get install -y nodejs
+    apt-get install -y nodejs && \
+    npm install -g @nestjs/cli
   args:
     executable: /bin/bash
   when: not use_docker_for_app | bool
@@ -42,9 +43,11 @@
 - name: Install backend dependencies (npm ci)
   community.general.npm:
     path: "{{ app_dir }}/backend"
+    ci: yes
     production: false
   environment:
     NODE_ENV: production
+    CI: "true"
   when: not use_docker_for_app | bool
 
 - name: Build backend (NestJS)
@@ -55,30 +58,14 @@
     NODE_ENV: production
   when: not use_docker_for_app | bool
 
-- name: Run database migrations (host)
-  command: npm run migration:run
-  args:
-    chdir: "{{ app_dir }}/backend"
-  environment:
-    NODE_ENV: production
-  when: not use_docker_for_app | bool
-  ignore_errors: yes
-
-- name: Run database seeds (host)
-  command: npm run seed
-  args:
-    chdir: "{{ app_dir }}/backend"
-  environment:
-    NODE_ENV: production
-  when: not use_docker_for_app | bool
-  ignore_errors: yes
-
 - name: Install frontend dependencies (npm ci)
   community.general.npm:
     path: "{{ app_dir }}/frontend"
+    ci: yes
     production: false
   environment:
     NODE_ENV: production
+    CI: "true"
   when: not use_docker_for_app | bool
 
 - name: Build frontend (Next.js)
@@ -153,6 +140,24 @@
     port: 3306
     delay: 10
     timeout: 60
+
+- name: Run database migrations (host)
+  command: npm run migration:run
+  args:
+    chdir: "{{ app_dir }}/backend"
+  environment:
+    NODE_ENV: production
+  when: not use_docker_for_app | bool
+  ignore_errors: yes
+
+- name: Run database seeds (host)
+  command: npm run seed
+  args:
+    chdir: "{{ app_dir }}/backend"
+  environment:
+    NODE_ENV: production
+  when: not use_docker_for_app | bool
+  ignore_errors: yes
 
 - name: Wait for backend to be ready
   wait_for:
