@@ -31,6 +31,101 @@
     group: "{{ app_group }}"
     mode: '0600'
 
+- name: Install Node.js {{ nodejs_version }} (para rodar app fora do Docker)
+  shell: |
+    curl -fsSL https://deb.nodesource.com/setup_{{ nodejs_version }}.x | bash - && \
+    apt-get install -y nodejs
+  args:
+    executable: /bin/bash
+  when: not use_docker_for_app | bool
+
+- name: Install backend dependencies (npm ci)
+  community.general.npm:
+    path: "{{ app_dir }}/backend"
+    production: false
+  environment:
+    NODE_ENV: production
+  when: not use_docker_for_app | bool
+
+- name: Build backend (NestJS)
+  command: npm run build
+  args:
+    chdir: "{{ app_dir }}/backend"
+  environment:
+    NODE_ENV: production
+  when: not use_docker_for_app | bool
+
+- name: Run database migrations (host)
+  command: npm run migration:run
+  args:
+    chdir: "{{ app_dir }}/backend"
+  environment:
+    NODE_ENV: production
+  when: not use_docker_for_app | bool
+  ignore_errors: yes
+
+- name: Run database seeds (host)
+  command: npm run seed
+  args:
+    chdir: "{{ app_dir }}/backend"
+  environment:
+    NODE_ENV: production
+  when: not use_docker_for_app | bool
+  ignore_errors: yes
+
+- name: Install frontend dependencies (npm ci)
+  community.general.npm:
+    path: "{{ app_dir }}/frontend"
+    production: false
+  environment:
+    NODE_ENV: production
+  when: not use_docker_for_app | bool
+
+- name: Build frontend (Next.js)
+  command: npm run build
+  args:
+    chdir: "{{ app_dir }}/frontend"
+  environment:
+    NODE_ENV: production
+  when: not use_docker_for_app | bool
+
+- name: Configure backend systemd service
+  template:
+    src: cs-skin-go-backend.service.j2
+    dest: /etc/systemd/system/cs-skin-go-backend.service
+    owner: root
+    group: root
+    mode: '0644'
+  when: not use_docker_for_app | bool
+
+- name: Configure frontend systemd service
+  template:
+    src: cs-skin-go-frontend.service.j2
+    dest: /etc/systemd/system/cs-skin-go-frontend.service
+    owner: root
+    group: root
+    mode: '0644'
+  when: not use_docker_for_app | bool
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+  when: not use_docker_for_app | bool
+
+- name: Enable and restart backend service
+  systemd:
+    name: cs-skin-go-backend.service
+    enabled: yes
+    state: restarted
+  when: not use_docker_for_app | bool
+
+- name: Enable and restart frontend service
+  systemd:
+    name: cs-skin-go-frontend.service
+    enabled: yes
+    state: restarted
+  when: not use_docker_for_app | bool
+
 - name: Create docker-compose file
   template:
     src: docker-compose.yml.j2
@@ -39,17 +134,17 @@
     group: "{{ app_group }}"
     mode: '0644'
 
-- name: Stop existing containers
+- name: Stop MySQL container (se existir)
   community.docker.docker_compose_v2:
     project_src: "{{ app_dir }}"
     state: absent
   ignore_errors: yes
 
-- name: Build and start containers
+- name: Start only MySQL container
   community.docker.docker_compose_v2:
     project_src: "{{ app_dir }}"
-    build: always
     state: present
+    pull: always
   become_user: "{{ app_user }}"
 
 - name: Wait for MySQL to be ready
@@ -64,19 +159,7 @@
     host: localhost
     port: "{{ backend_port }}"
     delay: 5
-    timeout: 120
-
-- name: Run database migrations
-  community.docker.docker_container_exec:
-    container: "{{ app_name }}-backend"
-    command: npm run migration:run
-  ignore_errors: yes
-
-- name: Run database seeds
-  community.docker.docker_container_exec:
-    container: "{{ app_name }}-backend"
-    command: npm run seed
-  ignore_errors: yes
+    timeout: 180
 
 - name: Wait for frontend to be ready
   wait_for:
@@ -92,6 +175,5 @@
   failed_when: not container_info.container.State.Running
   loop:
     - "{{ app_name }}-mysql"
-    - "{{ app_name }}-backend"
-    - "{{ app_name }}-frontend"
+
 

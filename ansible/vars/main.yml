@@ -16,6 +16,11 @@ docker_compose_version: "2.23.0"
 # Node.js
 nodejs_version: "18"
 
+# Deploy mode
+# Se true, backend/frontend rodam em containers Docker.
+# Se false, backend/frontend rodam direto na máquina (apenas MySQL em Docker).
+use_docker_for_app: false
+
 # MySQL
 mysql_root_password: "{{ lookup('env', 'TF_VAR_mysql_root_password') | default('change-me-strong-password-123', true) }}"
 mysql_database: "{{ lookup('env', 'TF_VAR_mysql_database') | default('cs_skin_go', true) }}"

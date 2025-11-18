@@ -1,0 +1,18 @@
+[Unit]
+Description=CS Skin GO - Backend API (NestJS)
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User={{ app_user }}
+Group={{ app_group }}
+WorkingDirectory={{ app_dir }}/backend
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npm run start:prod
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
+
